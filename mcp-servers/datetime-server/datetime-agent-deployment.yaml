@@ -1,0 +1,70 @@
+---
+# MCPServer resource for datetime tools
+apiVersion: kagent.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: datetime-agent-mcp
+  namespace: kagent
+spec:
+  deployment:
+    image: "datetime-server:latest"
+    port: 3000
+    cmd: "python"
+    args: ["src/main.py"]
+  transportType: "stdio"
+---
+# Agent resource that uses the datetime MCP server
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: datetime-agent
+  namespace: kagent
+spec:
+  type: Declarative
+  description: An AI agent that provides date and time information in various formats
+  declarative:
+    a2aConfig:
+      skills:
+        - id: date-time-info
+          name: Date & Time Information
+          description: Get current date, time, or datetime in various formats
+          tags:
+            - datetime
+            - time
+            - date
+            - timestamp
+          examples:
+            - "What's today's date?"
+            - "What time is it?"
+            - "Get me the current datetime in ISO format"
+            - "Show me the date in US format"
+            - "What's the current timestamp?"
+    systemMessage: |
+      You are a helpful assistant that provides accurate date and time information.
+      
+      You have access to the following tools:
+      - get_date: Returns the current date in various formats (ISO, US, EU, long, short)
+      - get_time: Returns the current time in 24-hour or 12-hour format
+      - get_datetime: Returns the current date and time together (ISO, timestamp, or human-readable)
+      
+      When users ask about dates or times, use the appropriate tool and format to provide 
+      the most helpful response. Always be precise and consider the user's likely timezone context.
+    tools:
+      - type: McpServer
+        mcpServer:
+          apiGroup: kagent.dev
+          kind: MCPServer
+          name: datetime-agent-mcp
+          toolNames:
+            - get_date
+            - get_time
+            - get_datetime
+    modelConfig: default-model-config
+    deployment:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 1000m
+          memory: 1Gi

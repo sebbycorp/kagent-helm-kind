@@ -1,0 +1,12 @@
+apiVersion: kagent.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: datetime-server
+  namespace: kagent
+spec:
+  deployment:
+    image: "datetime-server:latest"
+    port: 3000
+    cmd: "python"
+    args: ["src/main.py"]
+  transportType: "stdio"
